@@ -1,33 +1,50 @@
 import pytest
 
-# Function to test square
+# --- Functions under test ---
 def square(n):
     return n ** 2
 
-# Function to test cube
 def cube(n):
     return n ** 3
 
-# Function to test fifth power
 def fifth_power(n):
     return n ** 5
 
-# Testing the square function
-def test_square():
-    assert square(2) == 4, "Test Failed: Square of 2 should be 4"
-    assert square(3) == 9, "Test Failed: Square of 3 should be 9"
+# --- Test: Parameterized cases for correct output ---
+@pytest.mark.parametrize("func, input_val, expected", [
+    (square, 2, 4),
+    (square, -3, 9),
+    (cube, 3, 27),
+    (cube, -2, -8),
+    (fifth_power, 2, 32),
+    (fifth_power, -1, -1),
+    (square, 0, 0),
+    (cube, 0, 0),
+    (fifth_power, 0, 0),
+    (square, 1_000, 1_000_000),         # large input
+])
+def test_power_calculations(func, input_val, expected):
+    assert func(input_val) == expected
 
-# Testing the cube function
-def test_cube():
-    assert cube(2) == 8, "Test Failed: Cube of 2 should be 8"
-    assert cube(3) == 27, "Test Failed: Cube of 3 should be 27"
+# --- Test: Float inputs (Type flexibility) ---
+@pytest.mark.parametrize("func", [square, cube, fifth_power])
+def test_with_float_input(func):
+    result = func(2.0)
+    assert isinstance(result, float)
+    assert round(result) == func(2)    # Same output as integer
 
-# Testing the fifth power function
-def test_fifth_power():
-    assert fifth_power(2) == 32, "Test Failed: Fifth power of 2 should be 32"
-    assert fifth_power(3) == 243, "Test Failed: Fifth power of 3 should be 243"
-
-# Test for invalid input
-def test_invalid_input():
+# --- Test: Invalid inputs ---
+@pytest.mark.parametrize("invalid_input", ["string", None, [2], {"n": 2}])
+@pytest.mark.parametrize("func", [square, cube, fifth_power])
+def test_invalid_inputs(func, invalid_input):
     with pytest.raises(TypeError):
-        square("string")
+        func(invalid_input)
+
+# --- Test: Output types ---
+@pytest.mark.parametrize("func", [square, cube, fifth_power])
+def test_output_type(func):
+    assert isinstance(func(4), int)
+
+# --- Edge case: Negative powers (should still be valid mathematically) ---
+def test_fifth_power_negative():
+    assert fifth_power(-2) == -32
